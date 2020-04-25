@@ -282,13 +282,15 @@ def export_commit(ui,repo,revision,old_marks,max,count,authors,
   if repo[revnode].hidden():
     return count
 
+  unmangled_branch=branch
   branch=get_branchname(branch)
 
   parents = [p for p in repo.changelog.parentrevs(revision) if p >= 0]
   author = get_author(desc,user,authors)
+  hg_hash=revsymbol(repo,str(revision)).hex()
 
   if plugins and plugins['commit_message_filters']:
-    commit_data = {'branch': branch, 'parents': parents, 'author': author, 'desc': desc}
+    commit_data = {'branch': branch, 'parents': parents, 'author': author, 'desc': desc, 'hg_hash': hg_hash, 'unmangled_branch': unmangled_branch }
     for filter in plugins['commit_message_filters']:
       filter(commit_data)
     branch = commit_data['branch']
