@@ -506,7 +506,7 @@ def hg2git(repourl,m,marksfile,mappingfile,headsfile,tipfile,
 
   ui,repo=setup_repo(repourl)
 
-  if not verify_heads(ui,repo,heads_cache,force,branchesmap):
+  if not list_hg_subrepos and not verify_heads(ui,repo,heads_cache,force,branchesmap):
     return 1
 
   try:
