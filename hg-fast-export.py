@@ -485,7 +485,8 @@ def verify_heads(ui,repo,cache,force,branchesmap):
 def hg2git(repourl,m,marksfile,mappingfile,headsfile,tipfile,
            authors={},branchesmap={},tagsmap={},
            sob=False,force=False,hgtags=False,notes=False,encoding='',fn_encoding='',
-           plugins={}):
+           plugins={},
+           list_hg_subrepos=False):
   def check_cache(filename, contents):
     if len(contents) == 0:
       sys.stderr.write('Warning: %s does not contain any data, this will probably make an incremental import fail\n' % filename)
@@ -523,6 +524,20 @@ def hg2git(repourl,m,marksfile,mappingfile,headsfile,tipfile,
   	if repo[revnode].hidden():
   		continue
   	mapping_cache[revnode.encode('hex_codec')] = str(rev)
+
+  if list_hg_subrepos:
+    subrepo_dict={}
+    for rev in range(0,max):
+      ctx=revsymbol(repo,str(rev))
+      if ctx.hidden():
+        continue
+      if ctx.substate:
+        for key in ctx.substate:
+          subrepo_line="[%s] %s = %s" % (ctx.substate[key][2], key, ctx.substate[key][0])
+          if subrepo_line not in subrepo_dict:
+            subrepo_dict[subrepo_line]=ctx.substate[key]
+            sys.stderr.write("%s\n" % subrepo_line)
+    return 0
 
   if submodule_mappings:
     # Make sure that all submodules are registered in the submodule-mappings file
@@ -612,6 +627,8 @@ if __name__=='__main__':
       help="Add a plugin with the given init string <name=init>")
   parser.add_option("--subrepo-map", type="string", dest="subrepo_map",
       help="Provide a mapping file between the subrepository name and the submodule name")
+  parser.add_option("--list-hg-subrepos",action="store_true",dest="list_hg_subrepos",
+      default=False,help="Browses the hg repo and lists all subrepos and their remote URLs, then exit")
 
   (options,args)=parser.parse_args()
 
@@ -689,4 +706,5 @@ if __name__=='__main__':
                   authors=a,branchesmap=b,tagsmap=t,
                   sob=options.sob,force=options.force,hgtags=options.hgtags,
                   notes=options.notes,encoding=encoding,fn_encoding=fn_encoding,
-                  plugins=plugins_dict))
+                  plugins=plugins_dict,
+                  list_hg_subrepos=options.list_hg_subrepos))

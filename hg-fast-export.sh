@@ -84,6 +84,8 @@ Options:
 	                         with <file-path> <hg-hash> <is-binary> as arguments
 	--plugin <plugin=init>  Add a plugin with the given init string (repeatable)
 	--plugin-path <plugin-path> Add an additional plugin lookup path
+	--list-hg-subrepos    Browses the hg repo and lists all subrepos and their
+	                      remote URLs, then exit
 "
 case "$1" in
     -h|--help)
