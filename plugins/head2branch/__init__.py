@@ -18,6 +18,6 @@ class Filter:
             or any(rp in self.branch_parents for rp in rev_parents)
             ):
             self.branch_parents.add(rev)
-            commit_data['branch'] = self.branch_name
+            commit_data['branch'] = self.branch_name.encode('ascii', 'replace')
             sys.stderr.write('\nchanging r%s to branch %r\n' % (rev, self.branch_name))
             sys.stderr.flush()
