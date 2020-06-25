@@ -34,6 +34,7 @@ cfg_export_boundary=1000
 
 subrepo_cache={}
 submodule_mappings=None
+submodule_url_rewrite_mappings=None
 
 # True if fast export should automatically try to sanitize
 # author/branch/tag names.
@@ -154,7 +155,10 @@ def refresh_git_submodule(name,subrepo_info):
   stderr_buffer.write(
     b"Adding/updating submodule %s, revision %s\n" % (name, subrepo_info[1])
   )
-  return b'[submodule "%s"]\n\tpath = %s\n\turl = %s\n' % (name, name, subrepo_info[0])
+  url=subrepo_info[0]
+  if submodule_url_rewrite_mappings and submodule_url_rewrite_mappings[url]:
+    url=submodule_url_rewrite_mappings[url]
+  return b'[submodule "%s"]\n\tpath = %s\n\turl = %s\n' % (name, name, url)
 
 def refresh_hg_submodule(name,subrepo_info):
   gitRepoLocation=submodule_mappings[name] + b"/.git"
@@ -175,8 +179,10 @@ def refresh_hg_submodule(name,subrepo_info):
       b"Adding/updating submodule %s, revision %s->%s\n"
       % (name, subrepo_hash, gitSha)
     )
-    return b'[submodule "%s"]\n\tpath = %s\n\turl = %s\n' % (name,name,
-      submodule_mappings[name])
+    url=submodule_mappings[name]
+    if submodule_url_rewrite_mappings and submodule_url_rewrite_mappings[url]:
+      url=submodule_url_rewrite_mappings[url]
+    return b'[submodule "%s"]\n\tpath = %s\n\turl = %s\n' % (name,name,url)
   else:
     stderr_buffer.write(
       b"Warning: Could not find hg revision %s for %s in git %s\n"
@@ -645,6 +651,8 @@ if __name__=='__main__':
       help="Add a plugin with the given init string <name=init>")
   parser.add_option("--subrepo-map", type="string", dest="subrepo_map",
       help="Provide a mapping file between the subrepository name and the submodule name")
+  parser.add_option("--submodule-url-rewrite-map", type="string", dest="submodule_url_rewrite_map",
+      help="Provide a file for rewriting git submodules URLs")
 
   (options,args)=parser.parse_args()
 
@@ -665,6 +673,14 @@ if __name__=='__main__':
         sys.exit(1)
       submodule_mappings=load_mapping('subrepo mappings',
                                       options.subrepo_map,False)
+
+  if options.submodule_url_rewrite_map:
+      if not os.path.exists(options.submodule_url_rewrite_map):
+        sys.stderr.write('Submodule URL rewrite mapping file not found %s\n'
+                         % options.submodule_url_rewrite_map)
+        sys.exit(1)
+      submodule_url_rewrite_mappings=load_mapping('submodule URL rewrite mappings',
+                                      options.submodule_url_rewrite_map,False)
 
   a={}
   if options.authorfile!=None:
