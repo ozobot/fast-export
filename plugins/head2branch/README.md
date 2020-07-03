@@ -11,3 +11,5 @@ otherwise, the conversion will fail.
 
 To use the plugin, add
 `--plugin head2branch=name,<hg_hash>`.
+
+You might specify the plugin multiple times to to process more unnamed branches.
